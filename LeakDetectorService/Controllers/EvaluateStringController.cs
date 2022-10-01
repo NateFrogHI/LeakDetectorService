@@ -4,10 +4,11 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Web.Http;
+using System.Diagnostics;
 
 namespace LeakDetectorService.Controllers
 {
-    public class ValuesController : ApiController
+    public class EvaluateStringController : ApiController
     {
         // GET api/values
         public IEnumerable<string> Get()
@@ -22,11 +23,16 @@ namespace LeakDetectorService.Controllers
         }
 
         // POST api/values
-        public void Post([FromBody] string value)
+        public string Post([FromBody] Models.RawText value)
         {
+            String[] badwords = { "Arthas", "THatOnEwOrD", "that one sentence" };
+            Trace.WriteLine(value.ToString());
+            Utils.StringEvaluator stringEvaluator = new Utils.StringEvaluator(value.Text, badwords);
+            stringEvaluator.EvaluateString();
+            return stringEvaluator.Report();
         }
 
-        // PUT api/values/5
+        // PUT api/values/id
         public void Put(int id, [FromBody] string value)
         {
         }
