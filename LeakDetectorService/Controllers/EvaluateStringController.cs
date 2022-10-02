@@ -7,6 +7,8 @@ using System.Web.Http;
 using System.Diagnostics;
 using MongoDB.Bson;
 using MongoDB.Driver;
+using LeakDetectorService.Utils;
+using LeakDetectorService.Models;
 
 namespace LeakDetectorService.Controllers
 {
@@ -18,52 +20,23 @@ namespace LeakDetectorService.Controllers
     }
     public class EvaluateStringController : ApiController
     {
-        // GET api/values
+        // GET api/EvaluateString
         public List<string> Get()
         {
-            List<string> documents = new List<string>();
-            var uri = "mongodb://127.0.0.1:27017/leak-detector-db?directConnection=true&serverSelectionTimeoutMS=2000&appName=mongosh+1.6.0";
-            var client = new MongoClient(uri);
-
-            // database and collection goes here
-            var db = client.GetDatabase("leak-detector-db");
-            var coll = db.GetCollection<BsonDocument>("restrictedStrings");
-            // finid code goes here
-            var cursor = coll.AsQueryable();
-            // iterate code goes here
-            foreach (var document in cursor)
-            {
-                documents.Add(document.ToString());
-            }
-            return documents;
+            Db db = new Db();
+            return db.GetLeakReports();
         }
 
-        // GET api/values/5
-        public string Get(int id)
-        {
-            return "value";
-        }
-
-        // POST api/values
-        public string Post([FromBody] Models.RawText value)
+        // POST api/EvaluateString
+        public string Post([FromBody] RawText value)
         {
             //String[] badwords = { "Arthas", "THatOnEwOrD", "that one sentence" };
-            Utils.Db db = new Utils.Db();
+            Db db = new Db();
             List<string> badwords = db.GetRestrictedStrings();
-            Debug.WriteLine(value.ToString());
-            Utils.StringEvaluator stringEvaluator = new Utils.StringEvaluator(value.Text, badwords.ToArray());
+            StringEvaluator stringEvaluator = new StringEvaluator(value.Text, badwords.ToArray());
             stringEvaluator.EvaluateString();
+            stringEvaluator.SubmitViolations();
             return stringEvaluator.Report();
-        }
-
-        // PUT api/values/id
-        public void Put(int id, [FromBody] string value)
-        {
-        }
-
-        // DELETE api/values/5
-        public void Delete(int id)
-        {
         }
     }
 }

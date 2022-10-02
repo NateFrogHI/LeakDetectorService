@@ -2,30 +2,18 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Web;
+using LeakDetectorService.Models;
 
 namespace LeakDetectorService.Utils
 {
-    public struct Violation
-    {
-        public String ViolationString { get; }
-        public int LineNumber { get; }
-        public int CharacterNumber { get; }
-
-        public Violation(String violationString, int lineNumber, int characterNumber)
-        {
-            this.ViolationString = violationString;
-            this.LineNumber = lineNumber;
-            this.CharacterNumber = characterNumber;
-        }
-    }
     public class StringEvaluator
     {
-        private String[] sampleLines;
-        private String[] restrictedStrings;
+        private string[] sampleLines;
+        private string[] restrictedStrings;
 
         public Violation[] Violations { get; set; }
 
-        public StringEvaluator(String sample, String[] restrictedStrings)
+        public StringEvaluator(string sample, string[] restrictedStrings)
         {
             string[] newlineCharacters = new string[] { "\r\n", "\r", "\n" };
             sampleLines = sample.Split(
@@ -39,9 +27,9 @@ namespace LeakDetectorService.Utils
         {
             List<Violation> violationList = new List<Violation>();
             int lineIndex = 1;
-            foreach(String resStr in restrictedStrings)
+            foreach(string resStr in restrictedStrings)
             {
-                foreach(String sampleLine in sampleLines)
+                foreach(string sampleLine in sampleLines)
                 {
                     int startIndex = 0;
                     bool lineSearched = false;
@@ -73,9 +61,16 @@ namespace LeakDetectorService.Utils
             return (Violations != null && Violations.Length > 0);
         }
 
-        public String Report()
+        public void SubmitViolations()
         {
-            String violationText = "Violations found:\n";
+            LeakReport leakReport = new LeakReport(Violations);
+            Db db = new Db();
+            db.SubmitReport(leakReport);
+        }
+
+        public string Report()
+        {
+            string violationText = "Violations found:\n";
 
             if (!HasViolations()) return "No violations found";
 

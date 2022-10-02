@@ -239,10 +239,14 @@
     <Compile Include="Areas\HelpPage\XmlDocumentationProvider.cs" />
     <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Controllers\EvaluateStringController.cs" />
+    <Compile Include="Controllers\RestrictedStringsController.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
+    <Compile Include="Models\LeakReport.cs" />
     <Compile Include="Models\RawText.cs" />
+    <Compile Include="Models\Restricted.cs" />
+    <Compile Include="Models\Violation.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Utils\Db.cs" />
     <Compile Include="Utils\StringEvaluator.cs" />
