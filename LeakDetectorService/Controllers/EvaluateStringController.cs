@@ -1,12 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net;
-using System.Net.Http;
+﻿using System.Collections.Generic;
 using System.Web.Http;
-using System.Diagnostics;
-using MongoDB.Bson;
-using MongoDB.Driver;
 using LeakDetectorService.Utils;
 using LeakDetectorService.Models;
 
@@ -20,22 +13,31 @@ namespace LeakDetectorService.Controllers
     }
     public class EvaluateStringController : ApiController
     {
+        private readonly IDb db;
+
+        public EvaluateStringController(IDb db)
+        {
+            this.db = db;
+        }
+        public EvaluateStringController()
+        {
+            this.db = new Db();
+        }
+
         // GET api/EvaluateString
         public List<string> Get()
         {
-            Db db = new Db();
             return db.GetLeakReports();
         }
 
         // POST api/EvaluateString
         public string Post([FromBody] RawText value)
         {
-            //String[] badwords = { "Arthas", "THatOnEwOrD", "that one sentence" };
-            Db db = new Db();
             List<string> badwords = db.GetRestrictedStrings();
             StringEvaluator stringEvaluator = new StringEvaluator(value.Text, badwords.ToArray());
             stringEvaluator.EvaluateString();
-            stringEvaluator.SubmitViolations();
+            LeakReport leakReport = new LeakReport(stringEvaluator.Violations);
+            db.SubmitReport(leakReport);
             return stringEvaluator.Report();
         }
     }

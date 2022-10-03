@@ -9,9 +9,17 @@ using MongoDB.Bson.Serialization.Conventions;
 
 namespace LeakDetectorService.Utils
 {
-    public class Db
+    public interface IDb
     {
-        private readonly string uri = "mongodb://127.0.0.1:27017/leak-detector-db?directConnection=true&serverSelectionTimeoutMS=2000&appName=mongosh+1.6.0";
+        List<string> GetRestrictedStrings();
+        string AddRestrictedString(Restricted restrictedString);
+        string DeleteRestrictedString(Restricted restrictedString);
+        List<string> GetLeakReports();
+        string SubmitReport(LeakReport leakReport);
+    }
+    public class Db : IDb
+    {
+        private  string uri = "mongodb://127.0.0.1:27017/leak-detector-db?directConnection=true&serverSelectionTimeoutMS=2000&appName=mongosh+1.6.0";
 
         private IMongoDatabase GetDatabase()
         {
@@ -19,7 +27,7 @@ namespace LeakDetectorService.Utils
             return client.GetDatabase("leak-detector-db");
         }
             
-        public IMongoQueryable<BsonDocument> GetCollection(string collectionName)
+        private IMongoQueryable<BsonDocument> GetCollection(string collectionName)
         {
             IMongoDatabase db = GetDatabase();
             IMongoCollection<BsonDocument> collection = db.GetCollection<BsonDocument>(collectionName);
@@ -53,7 +61,7 @@ namespace LeakDetectorService.Utils
             return "1 record added to restrictedStrings";
         }
 
-        public DeleteResult DeleteRestrictedString(Restricted restrictedString)
+        public string DeleteRestrictedString(Restricted restrictedString)
         {
             // instruct the driver to camelCase the fields in MongoDB
             ConventionPack pack = new ConventionPack { new CamelCaseElementNameConvention() };
@@ -62,7 +70,11 @@ namespace LeakDetectorService.Utils
             IMongoDatabase db = GetDatabase();
             IMongoCollection<Restricted> collection = db.GetCollection<Restricted>("restrictedStrings");
 
-            return collection.DeleteOne(resStrEntry => resStrEntry.RestrictedString == restrictedString.RestrictedString);
+            DeleteResult deleteResult = collection.DeleteOne(
+                resStrEntry => resStrEntry.RestrictedString == restrictedString.RestrictedString
+            );
+
+            return $"Deleted {deleteResult.DeletedCount} from restrictedStrings";
         }
 
         public List<string> GetLeakReports()
