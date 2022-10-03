@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Web;
 using LeakDetectorService.Models;
 
 namespace LeakDetectorService.Utils
@@ -26,10 +24,10 @@ namespace LeakDetectorService.Utils
         public void EvaluateString()
         {
             List<Violation> violationList = new List<Violation>();
-            int lineIndex = 1;
             foreach(string resStr in restrictedStrings)
             {
-                foreach(string sampleLine in sampleLines)
+                int lineIndex = 1;
+                foreach (string sampleLine in sampleLines)
                 {
                     int startIndex = 0;
                     bool lineSearched = false;
@@ -51,6 +49,7 @@ namespace LeakDetectorService.Utils
                             startIndex = violationIndex + resStr.Length;
                         }
                     }
+                    lineIndex++;
                 }
             }
             if (violationList.Count > 0) this.Violations = violationList.ToArray();
@@ -59,13 +58,6 @@ namespace LeakDetectorService.Utils
         public Boolean HasViolations()
         { 
             return (Violations != null && Violations.Length > 0);
-        }
-
-        public void SubmitViolations()
-        {
-            LeakReport leakReport = new LeakReport(Violations);
-            Db db = new Db();
-            db.SubmitReport(leakReport);
         }
 
         public string Report()
